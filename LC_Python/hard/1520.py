@@ -14,25 +14,27 @@ class Solution:
         eliminates = defaultdict(set)
         intervals = []
         for letter in LETTERS:
+            valid = True
+
             # Expand the interval that contains `letter`.
-            min_left, max_right = first_and_last[letter]
-            indices = list(range(min_left, max_right + 1))
-            while len(indices) > 0:
-                idx = indices.pop()
-                left, right = first_and_last[s[idx]]
+            left, right = first_and_last[letter]
+            idx = left + 1
 
-                if left < min_left:
-                    indices += list(range(left, min_left))
-                    min_left = left
+            while idx <= right:
+                curr_letter = s[idx]
+                curr_left, curr_right = first_and_last[curr_letter]
 
-                if right > max_right:
-                    indices += list(range(max_right + 1, right + 1))
-                    max_right = right
+                right = max(right, curr_right)
+                eliminates[curr_letter].add(letter)
 
-                # Selecting s[idx] => can't choose letter anymore.
-                eliminates[s[idx]].add(letter)
+                if curr_left < left:
+                    valid = False
+                    break
 
-            intervals.append((letter, min_left, max_right))
+                idx += 1
+
+            if valid:
+                intervals.append((letter, left, right))
 
         # Choose intervals greedily.
         intervals.sort(key=lambda x: x[2] - x[1] + 1)
