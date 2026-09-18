@@ -1,6 +1,3 @@
-from collections import defaultdict
-
-
 class Solution:
     def maxNumOfSubstrings(self, s: str) -> list[str]:
         first_and_last = dict()
@@ -10,10 +7,8 @@ class Solution:
             else:
                 first_and_last[letter] = [idx, idx]
 
-        LETTERS = first_and_last.keys()
-        eliminates = defaultdict(set)
         intervals = []
-        for letter in LETTERS:
+        for letter in first_and_last.keys():
             valid = True
 
             # Expand the interval that contains `letter`.
@@ -25,7 +20,6 @@ class Solution:
                 curr_left, curr_right = first_and_last[curr_letter]
 
                 right = max(right, curr_right)
-                eliminates[curr_letter].add(letter)
 
                 if curr_left < left:
                     valid = False
@@ -34,16 +28,16 @@ class Solution:
                 idx += 1
 
             if valid:
-                intervals.append((letter, left, right))
+                intervals.append((left, right))
 
         # Choose intervals greedily.
-        intervals.sort(key=lambda x: x[2] - x[1] + 1)
-        eliminated = set()
         ans = []
-        for letter, left, right in intervals:
-            if letter not in eliminated:
-                eliminated = eliminated.union(eliminates[letter])
+        prev_right = -1
+        intervals.sort(key=lambda x: x[1])
+        for left, right in intervals:
+            if left > prev_right:
                 ans.append(s[left : (right + 1)])
+                prev_right = right
 
         return ans
 
