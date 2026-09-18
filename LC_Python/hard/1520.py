@@ -16,10 +16,18 @@ class Solution:
         for letter in LETTERS:
             # Expand the interval that contains `letter`.
             min_left, max_right = first_and_last[letter]
-            for idx in range(min_left, max_right + 1):
+            indices = list(range(min_left, max_right + 1))
+            while len(indices) > 0:
+                idx = indices.pop()
                 left, right = first_and_last[s[idx]]
-                min_left = min(min_left, left)
-                max_right = max(max_right, right)
+
+                if left < min_left:
+                    indices += list(range(left, min_left))
+                    min_left = left
+
+                if right > max_right:
+                    indices += list(range(max_right + 1, right + 1))
+                    max_right = right
 
                 # Selecting s[idx] => can't choose letter anymore.
                 eliminates[s[idx]].add(letter)
@@ -41,3 +49,4 @@ class Solution:
 sol = Solution()
 print(sol.maxNumOfSubstrings("adefaddaccc"))
 print(sol.maxNumOfSubstrings("abbaccd"))
+print(sol.maxNumOfSubstrings("dzdabazbbccd"))
