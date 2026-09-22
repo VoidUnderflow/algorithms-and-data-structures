@@ -1,4 +1,3 @@
-# TODO: Merge should probably modify in-place.
 class YetAnotherSegmentTree:
     def __init__(self, nums: list[int], k: int):
         N = len(nums)
@@ -18,26 +17,24 @@ class YetAnotherSegmentTree:
             tM = (tL + tR) // 2
             self.build(nums, 2 * tree_idx, tL, tM)
             self.build(nums, 2 * tree_idx + 1, tM, tR)
-            self.t[tree_idx] = self.merge_segments(
-                self.t[2 * tree_idx], self.t[2 * tree_idx + 1]
+            self.merge_into(
+                self.t[tree_idx], self.t[2 * tree_idx], self.t[2 * tree_idx + 1]
             )
 
     def reset_leaf(self, tree_idx: int, val: int):
-        self.t[tree_idx] = [0] * (self.k + 1)
+        for mod in range(self.k):
+            self.t[tree_idx][mod] = 0
         self.t[tree_idx][val % self.k] = 1
         self.t[tree_idx][self.k] = val % self.k
 
-    def merge_segments(self, seg1: list[int], seg2: list[int]) -> list[int]:
-        merge_res = [0] * (self.k + 1)
-        merge_res[-1] = (seg1[-1] * seg2[-1]) % self.k
+    def merge_into(self, dest: list[int], seg1: list[int], seg2: list[int]):
+        dest[-1] = (seg1[-1] * seg2[-1]) % self.k
 
         for mod in range(self.k):
-            merge_res[mod] = seg1[mod]
+            dest[mod] = seg1[mod]
 
         for mod in range(self.k):
-            merge_res[(seg1[-1] * mod) % self.k] += seg2[mod]
-
-        return merge_res
+            dest[(seg1[-1] * mod) % self.k] += seg2[mod]
 
     def update(self, tree_idx: int, tL: int, tR: int, orig_idx: int, new_val: int):
         if tL + 1 == tR:
@@ -48,8 +45,8 @@ class YetAnotherSegmentTree:
                 self.update(2 * tree_idx, tL, tM, orig_idx, new_val)
             else:
                 self.update(2 * tree_idx + 1, tM, tR, orig_idx, new_val)
-            self.t[tree_idx] = self.merge_segments(
-                self.t[2 * tree_idx], self.t[2 * tree_idx + 1]
+            self.merge_into(
+                self.t[tree_idx], self.t[2 * tree_idx], self.t[2 * tree_idx + 1]
             )
 
     # [tL, tR) and [qL, qR) are guaranteed to have an overlap
@@ -66,7 +63,10 @@ class YetAnotherSegmentTree:
 
         left_segment = self.query(2 * tree_idx, tL, tM, qL, qR)
         right_segment = self.query(2 * tree_idx + 1, tM, tR, qL, qR)
-        return self.merge_segments(left_segment, right_segment)
+        return_segment = [0] * (self.k + 1)
+        self.merge_into(return_segment, left_segment, right_segment)
+
+        return return_segment
 
 
 class Solution:
