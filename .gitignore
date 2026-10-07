@@ -4,3 +4,4 @@
 **/*.egg-info/
 **/target/
 LC_Rust/src/bin/
+.idea
