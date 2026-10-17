@@ -11,7 +11,8 @@ function minSwaps(nums: number[]): number {
     const N = nums.length;
 
     let indices = Array.from({ length: N }, (_, idx) => idx);
-    indices.sort((a, b) => digitSum(nums[a]) - digitSum(nums[b]) || nums[a] - nums[b]);
+    const sums = nums.map(digitSum);
+    indices.sort((a, b) => sums[a] - sums[b] || nums[a] - nums[b]);
 
     const targetPos = Array(N).fill(0);
     for (let pos = 0; pos < N; pos++) {
@@ -38,3 +39,4 @@ function minSwaps(nums: number[]): number {
 assert.equal(minSwaps([37, 100]), 1);
 assert.equal(minSwaps([22, 14, 33, 7]), 0);
 assert.equal(minSwaps([18, 43, 34, 16]), 2);
+assert.equal(minSwaps([1]), 0);
