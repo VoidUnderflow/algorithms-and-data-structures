@@ -89,7 +89,7 @@ class LCA:
         self.LOG = N.bit_length()
         self.depth = [node.depth for node in nodes]
 
-        # ancestors[node_idx][j] = ancestor 2^j edges above node_idx.
+        # ancestors[node_idx][jj] = ancestor 2^jj edges above node_idx.
         self.ancestors = [[-1] * self.LOG for _ in range(N)]
 
         for node_idx in range(N):
@@ -97,9 +97,9 @@ class LCA:
 
         for jj in range(1, self.LOG):
             for node_idx in range(N):
-                prev_idx = self.ancestors[node_idx][jj - 1]
-                if prev_idx != -1:
-                    self.ancestors[node_idx][jj] = self.ancestors[prev_idx][jj - 1]
+                ancestor_idx = self.ancestors[node_idx][jj - 1]
+                if ancestor_idx != -1:
+                    self.ancestors[node_idx][jj] = self.ancestors[ancestor_idx][jj - 1]
 
     # O(log N) LCA.
     def query(self, u_idx: int, v_idx: int) -> int:
@@ -108,18 +108,23 @@ class LCA:
 
         # Bring both nodes to the same depth.
         depth_diff = self.depth[u_idx] - self.depth[v_idx]
-        for j in range(self.LOG):
-            if depth_diff & (1 << j):
-                u_idx = self.ancestors[u_idx][j]
+        for jj in range(self.LOG):
+            # Need to lift the lower node by depth_diff.
+            # We use depth_diff's set bits to progressively lift it by powers of two (ancestors is built for this op).
+            if depth_diff & (1 << jj):
+                u_idx = self.ancestors[u_idx][jj]
 
         if u_idx == v_idx:
             return u_idx
 
         # Lift both nodes until their parents are equal.
-        for j in range(self.LOG - 1, -1, -1):
-            if self.ancestors[u_idx][j] != self.ancestors[v_idx][j]:
-                u_idx = self.ancestors[u_idx][j]
-                v_idx = self.ancestors[v_idx][j]
+        # The reverse of the operation above.
+        # We don't know depth_diff to one level below the LCA, but we build it bit by bit.
+        # If ancestors are equal => we overshot or reached the LCA and the bit is not part of the depth_diff.
+        for jj in range(self.LOG - 1, -1, -1):
+            if self.ancestors[u_idx][jj] != self.ancestors[v_idx][jj]:
+                u_idx = self.ancestors[u_idx][jj]
+                v_idx = self.ancestors[v_idx][jj]
 
         return self.ancestors[u_idx][0]
 
