@@ -82,6 +82,48 @@ class LazySegmentTree:
         )
 
 
+# Binary lifting LCA.
+class LCA:
+    def __init__(self, nodes: list[TreeNode]):
+        N = len(nodes)
+        self.LOG = N.bit_length()
+        self.depth = [node.depth for node in nodes]
+
+        # ancestors[node_idx][j] = ancestor 2^j edges above node_idx.
+        self.ancestors = [[-1] * self.LOG for _ in range(N)]
+
+        for node_idx in range(N):
+            self.ancestors[node_idx][0] = nodes[node_idx].parent_idx
+
+        for jj in range(1, self.LOG):
+            for node_idx in range(N):
+                prev_idx = self.ancestors[node_idx][jj - 1]
+                if prev_idx != -1:
+                    self.ancestors[node_idx][jj] = self.ancestors[prev_idx][jj - 1]
+
+    # O(log N) LCA.
+    def query(self, u_idx: int, v_idx: int) -> int:
+        if self.depth[u_idx] < self.depth[v_idx]:
+            u_idx, v_idx = v_idx, u_idx
+
+        # Bring both nodes to the same depth.
+        depth_diff = self.depth[u_idx] - self.depth[v_idx]
+        for j in range(self.LOG):
+            if depth_diff & (1 << j):
+                u_idx = self.ancestors[u_idx][j]
+
+        if u_idx == v_idx:
+            return u_idx
+
+        # Lift both nodes until their parents are equal.
+        for j in range(self.LOG - 1, -1, -1):
+            if self.ancestors[u_idx][j] != self.ancestors[v_idx][j]:
+                u_idx = self.ancestors[u_idx][j]
+                v_idx = self.ancestors[v_idx][j]
+
+        return self.ancestors[u_idx][0]
+
+
 class Solution:
     def palindromePath(
         self, n: int, edges: list[list[int]], s: str, queries: list[str]
@@ -127,18 +169,8 @@ class Solution:
         for n1 in nodes:
             n1.exit_idx = n1.entry_idx + n1.size
 
-        # O(N) LCA, pray to god we don't need something more efficient.
-        def lca(u_idx: int, v_idx: int) -> int:
-            while nodes[u_idx].depth > nodes[v_idx].depth:
-                u_idx = nodes[u_idx].parent_idx
-            while nodes[v_idx].depth > nodes[u_idx].depth:
-                v_idx = nodes[v_idx].parent_idx
-
-            while u_idx != v_idx:
-                u_idx = nodes[u_idx].parent_idx
-                v_idx = nodes[v_idx].parent_idx
-
-            return u_idx
+        # I hate this problem.
+        lca = LCA(nodes)
 
         # We use a lazy segment tree to do efficient range updates.
         # The tree stores the xor prefix for each node.
@@ -162,7 +194,7 @@ class Solution:
             else:
                 n2_idx = int(arg2)
                 n2 = nodes[n2_idx]
-                lca_node_idx = lca(n1_idx, n2_idx)
+                lca_node_idx = lca.query(n1_idx, n2_idx)
 
                 n1_prefix = segment_tree.query(1, 0, n, n1.entry_idx, n1.entry_idx + 1)
                 n2_prefix = segment_tree.query(1, 0, n, n2.entry_idx, n2.entry_idx + 1)
