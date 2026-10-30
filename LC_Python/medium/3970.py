@@ -14,6 +14,9 @@ class Solution:
         while len(heap) > 0:
             curr_weight, curr_node, streak = heappop(heap)
 
+            if (curr_node, streak) in visited:
+                continue
+
             if curr_node == n - 1:
                 return curr_weight
 
