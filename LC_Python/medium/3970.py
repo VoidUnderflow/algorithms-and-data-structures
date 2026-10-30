@@ -7,34 +7,28 @@ class Solution:
         for u, v, w in edges:
             neighbours[u].append((v, w))
 
-        # (weight, (node, last_char, last_char_streak))
-        heap = [(0, (0, "", 0))]
-
-        visited = [False] * n
-        visited[0] = True
+        # (weight, node, streak)
+        heap = [(0, 0, 1)]
+        visited = set()
 
         while len(heap) > 0:
-            curr_weight, (curr_node, last_char, last_char_streak) = heappop(heap)
-            if labels[curr_node] != last_char:
-                last_char_streak = 1
-            elif last_char_streak == k:
-                continue  # reached streak limit
-            else:
-                last_char_streak += 1
+            curr_weight, curr_node, streak = heappop(heap)
 
             if curr_node == n - 1:
                 return curr_weight
 
-            visited[curr_node] = True
+            visited.add((curr_node, streak))
 
             for node, weight in neighbours[curr_node]:
-                if visited[node]:
+                next_streak = streak + 1 if labels[node] == labels[curr_node] else 1
+
+                if next_streak > k:
                     continue
 
-                heappush(
-                    heap,
-                    (curr_weight + weight, (node, labels[curr_node], last_char_streak)),
-                )
+                if (node, next_streak) in visited:
+                    continue
+
+                heappush(heap, (curr_weight + weight, node, next_streak))
 
         return -1
 
