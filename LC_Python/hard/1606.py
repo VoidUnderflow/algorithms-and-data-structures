@@ -13,7 +13,9 @@ class Solution:
     def busiestServers(self, k: int, arrival: list[int], load: list[int]) -> list[int]:
         busy = []
         idle = list(range(k))  # heapify(idle) = idle
+
         count = defaultdict(int)
+        max_count = 0
 
         for event_idx in range(len(arrival)):
             curr_arrival, curr_load = arrival[event_idx], load[event_idx]
@@ -35,8 +37,9 @@ class Solution:
             # Move the server to idle with its finish time.
             heappush(busy, (curr_arrival + curr_load, server_idx))
             count[server_idx] += 1
+            max_count = max(count[server_idx], max_count)
 
-        return [key for key in count if count[key] == max(count.values())]
+        return [key for key in count if count[key] == max_count]
 
 
 sol = Solution()
