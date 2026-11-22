@@ -1,5 +1,8 @@
 * text=auto
 
+# Shell scripts run under sh on every OS, so they must be LF.
+.husky/* text eol=lf
+
 # oxfmt is configured with endOfLine: "crlf"
 *.ts text eol=crlf
 *.tsx text eol=crlf
