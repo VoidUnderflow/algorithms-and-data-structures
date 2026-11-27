@@ -1,5 +1,4 @@
 from collections import Counter
-from functools import cache
 
 MAX_FACTOR = MAX_PRICE = 1500
 
@@ -24,20 +23,25 @@ class Solution:
 
             items[idx][0] = curr_count
 
-        @cache
-        def dp(idx: int, remaining_budget: int) -> int:
-            if idx == N:
-                return remaining_budget // min_price
+        # dp[rem] = max number of items up to idx that leave exactly rem budget remaining
+        # dp[rem] = -1 => rem is unreachable
+        dp = [-1] * (budget + 1)
+        dp[budget] = 0
 
-            skip = dp(idx + 1, remaining_budget)
-            if items[idx][1] > remaining_budget:
-                return skip
-            return max(
-                skip,
-                items[idx][0] + dp(idx + 1, remaining_budget - items[idx][1]),
-            )
+        for idx in range(N):
+            count, price = items[idx]
 
-        return dp(0, budget)
+            for remaining_budget in range(price, budget + 1):
+                if dp[remaining_budget] >= 0:
+                    dp[remaining_budget - price] = max(
+                        dp[remaining_budget - price], dp[remaining_budget] + count
+                    )
+
+        return max(
+            dp[remaining_budget] + remaining_budget // min_price
+            for remaining_budget in range(budget + 1)
+            if dp[remaining_budget] >= 0
+        )
 
 
 sol = Solution()
